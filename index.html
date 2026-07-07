@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bunker GN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #161512;
+    --panel: #1f1e1a;
+    --panel-2: #26241f;
+    --line: #3a372f;
+    --text: #f2efe9;
+    --text-dim: #a6a196;
+    --amber: #e8a33d;
+    --amber-dim: #a67329;
+    --green: #7fae6a;
+    --red: #c1443d;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;height:100%;overscroll-behavior:none;}
+  #app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;}
+
+  header.top{
+    position:relative;
+    height:145px;
+    border-bottom:1px solid var(--line);
+    overflow:hidden;
+    display:flex; align-items:flex-end;
+  }
+  header.top .bg-image{
+    position:absolute; inset:0;
+    background-image:url('bunker-bg.jpg');
+    background-size:cover;
+    background-position:center center;
+  }
+  header.top .scrim{
+    position:absolute; inset:0;
+    background:linear-gradient(90deg, var(--bg) 0%, rgba(22,21,18,0.6) 40%, rgba(22,21,18,0.15) 65%, rgba(22,21,18,0) 100%);
+  }
+  header.top .brand{position:relative; z-index:2; padding:0 20px 14px; display:flex; align-items:center; justify-content:space-between; width:100%;}
+  header.top .brand-text .name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:32px;letter-spacing:0.5px;line-height:1;color:var(--text); text-shadow:0 2px 10px rgba(0,0,0,0.6);}
+  header.top .brand-text .name span{color:var(--amber);}
+  header.top .clock{position:absolute; z-index:2; top:12px; left:20px; font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-dim);text-align:left; text-shadow:0 1px 6px rgba(0,0,0,0.6);}
+
+  main{flex:1;padding:16px 16px 90px;overflow-y:auto;}
+
+  nav.bottom{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:520px;
+    background:var(--panel); border-top:1px solid var(--line);
+    display:flex; justify-content:space-around; padding:8px 4px 10px;
+    z-index:50;
+  }
+  nav.bottom button{
+    background:none;border:none;color:var(--text-dim);font-family:'Inter';font-size:10.5px;
+    display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 8px;border-radius:10px;
+    cursor:pointer; transition:color .15s;
+  }
+  nav.bottom button.active{color:var(--amber);}
+  nav.bottom button svg{width:20px;height:20px;}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+  .card h3{margin:0 0 12px;font-family:'Space Grotesk';font-size:14px;letter-spacing:0.3px;color:var(--text-dim);font-weight:600;text-transform:uppercase;}
+
+  .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;}
+  .kpi .label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;}
+  .kpi .value{font-family:'JetBrains Mono';font-size:20px;font-weight:700;margin-top:6px;}
+  .kpi .value.pos{color:var(--green);}
+  .kpi .value.neg{color:var(--red);}
+  .kpi .value.amber{color:var(--amber);}
+
+  button.primary{
+    width:100%;background:var(--amber);color:#161512;border:none;border-radius:12px;
+    padding:15px;font-weight:700;font-size:15px;font-family:'Space Grotesk';cursor:pointer;
+    letter-spacing:0.3px;
+  }
+  button.primary:disabled{background:var(--amber-dim);opacity:.5;}
+  button.secondary{
+    width:100%;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:12px;
+    padding:13px;font-weight:600;font-size:14px;font-family:'Inter';cursor:pointer;
+  }
+  button.danger{background:transparent;color:var(--red);border:1px solid var(--red);border-radius:10px;padding:8px 12px;font-size:12px;cursor:pointer;}
+
+  input,select{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:12px 14px;border-radius:10px;font-size:15px;font-family:'Inter';margin-bottom:10px;
+  }
+  label.field-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block;}
+
+  .product-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 0;border-bottom:1px solid var(--line);
+  }
+  .product-row:last-child{border-bottom:none;}
+  .product-row .info{flex:1;}
+  .product-row .info .pname{font-weight:600;font-size:14.5px;}
+  .product-row .info .pmeta{font-size:12px;color:var(--text-dim);margin-top:2px;font-family:'JetBrains Mono';}
+  .product-row .stock-badge{font-size:11px;padding:3px 8px;border-radius:20px;font-family:'JetBrains Mono';font-weight:700;}
+  .stock-ok{background:rgba(127,174,106,0.15);color:var(--green);}
+  .stock-low{background:rgba(193,68,61,0.15);color:var(--red);}
+
+  .qty-stepper{display:flex;align-items:center;gap:10px;}
+  .qty-stepper button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:16px;cursor:pointer;}
+  .qty-stepper span{font-family:'JetBrains Mono';min-width:22px;text-align:center;font-weight:700;}
+
+  .cart-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .cart-item .ci-name{font-size:13.5px;}
+  .cart-item .ci-total{font-family:'JetBrains Mono';font-weight:700;color:var(--amber);}
+
+  .receipt{
+    background:var(--panel-2);border:1px dashed var(--line);border-radius:10px;padding:16px;
+    font-family:'JetBrains Mono';
+  }
+  .receipt .r-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--text-dim);}
+  .receipt .r-total{display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:var(--amber);border-top:1px dashed var(--line);margin-top:8px;padding-top:10px;}
+
+  .empty-state{text-align:center;padding:40px 20px;color:var(--text-dim);}
+  .empty-state .icon{font-size:32px;margin-bottom:10px;}
+
+  .toast{
+    position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+    background:var(--green);color:#161512;padding:12px 22px;border-radius:30px;
+    font-weight:700;font-size:13.5px;z-index:100;opacity:0;transition:opacity .25s, bottom .25s;
+    pointer-events:none; max-width:80%; text-align:center;
+  }
+  .toast.show{opacity:1;bottom:100px;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:14px;}
+  .tab-btn{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text-dim);font-size:12.5px;font-weight:600;cursor:pointer;text-align:center;}
+  .tab-btn.active{background:var(--amber);color:#161512;border-color:var(--amber);}
+
+  .pago-toggle{display:flex;gap:8px;margin-bottom:14px;}
+  .pago-btn{flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--text-dim);font-size:13.5px;font-weight:700;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .pago-btn.active-efectivo{background:rgba(127,174,106,0.15);color:var(--green);border-color:var(--green);}
+  .pago-btn.active-transferencia{background:rgba(232,163,61,0.15);color:var(--amber);border-color:var(--amber);}
+
+  .top-list-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;}
+  .top-list-item:last-child{border-bottom:none;}
+  .top-list-item .rank{color:var(--amber);font-family:'JetBrains Mono';font-weight:700;margin-right:8px;}
+
+  .loading-spinner{display:flex;justify-content:center;padding:30px;}
+  .loading-spinner div{width:8px;height:8px;background:var(--amber);border-radius:50%;margin:0 3px;animation:pulse 1s infinite ease-in-out;}
+  .loading-spinner div:nth-child(2){animation-delay:0.15s;}
+  .loading-spinner div:nth-child(3){animation-delay:0.3s;}
+  @keyframes pulse{0%,80%,100%{opacity:0.25;transform:scale(0.8);}40%{opacity:1;transform:scale(1);}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="bg-image"></div>
+    <div class="scrim"></div>
+    <div class="clock" id="clock"></div>
+    <div class="brand">
+      <div class="brand-text">
+        <div class="name">BUNKER <span>GN</span></div>
+      </div>
+    </div>
+  </header>
+  <main id="main"></main>
+  <nav class="bottom">
+    <button data-view="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-7 9 7v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Inicio</button>
+    <button data-view="vender"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>Vender</button>
+    <button data-view="stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7L12 3 4 7m16 0v10l-8 4m8-14L12 11m0 12l-8-4V7m8 4L4 7"/></svg>Stock</button>
+    <button data-view="compras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/></svg>Compras</button>
+    <button data-view="gastos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Gastos</button>
+    <button data-view="resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"/></svg>Resumen</button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ CONFIG ============ */
+const API_URL = "https://script.google.com/macros/s/AKfycbxEhP8N6_LPNNa0XVu6OD0_A1AVriXmg6O_16JF1modUXYsWGYZiLrhlDS7IuAVRwWUgQ/exec";
+
+/* ============ ESTADO ============ */
+let productos = [];
+let carrito = []; // {Codigo, Nombre, Cantidad, PrecioUnitario, Stock}
+let metodoPagoVenta = 'EFECTIVO';
+let currentView = 'inicio';
+
+/* ============ JSONP HELPER ============ */
+let jsonpCounter = 0;
+function jsonpRequest(action, params) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Date.now() + '_' + (jsonpCounter++);
+    window[cbName] = (data) => {
+      resolve(data);
+      delete window[cbName];
+      script.remove();
+    };
+    let url = API_URL + '?action=' + action + '&callback=' + cbName;
+    if (params) {
+      Object.keys(params).forEach(k => {
+        url += '&' + k + '=' + encodeURIComponent(typeof params[k] === 'object' ? JSON.stringify(params[k]) : params[k]);
+      });
+    }
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = () => reject(new Error('Error de red'));
+    document.body.appendChild(script);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function money(n) {
+  return '$' + Number(n || 0).toLocaleString('es-AR', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+/* ============ CLOCK ============ */
+function tickClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleDateString('es-AR') + '  ' + now.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+}
+setInterval(tickClock, 1000 * 30);
+tickClock();
+
+/* ============ NAV ============ */
+document.querySelectorAll('nav.bottom button').forEach(btn => {
+  btn.addEventListener('click', () => navigate(btn.dataset.view));
+});
+function navigate(view) {
+  currentView = view;
+  document.querySelectorAll('nav.bottom button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  render();
+}
+
+/* ============ LOAD DATA ============ */
+async function loadProductos() {
+  productos = await jsonpRequest('getProductos');
+  if (productos.error) productos = [];
+}
+
+/* ============ RENDER ROUTER ============ */
+function render() {
+  const main = document.getElementById('main');
+  main.innerHTML = '<div class="loading-spinner"><div></div><div></div><div></div></div>';
+  if (currentView === 'inicio') renderInicio();
+  else if (currentView === 'vender') renderVender();
+  else if (currentView === 'stock') renderStock();
+  else if (currentView === 'compras') renderCompras();
+  else if (currentView === 'gastos') renderGastos();
+  else if (currentView === 'resumen') renderResumen();
+}
+
+/* ============ INICIO ============ */
+async function renderInicio() {
+  const hoy = todayStr();
+  const caja = await jsonpRequest('getCajaDia', {fecha: hoy});
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Venta de hoy</div><div class="value amber">${money(caja.totalVentas)}</div></div>
+      <div class="kpi"><div class="label">Tickets hoy</div><div class="value">${caja.cantidadVentas || 0}</div></div>
+    </div>
+    <div class="card">
+      <h3>Caja de hoy</h3>
+      <div class="receipt">
+        <div class="r-row"><span>Fondo inicial</span><span>${money(caja.fondoInicial)}</span></div>
+        <div class="r-row"><span>💵 Ventas en efectivo</span><span>+${money(caja.efectivoVentas)}</span></div>
+        <div class="r-row"><span>Gastos pagados en efectivo</span><span>-${money(caja.egresosEfectivo)}</span></div>
+        <div class="r-row"><span>Retiros del dueño</span><span>-${money(caja.retirosEfectivo)}</span></div>
+        <div class="r-total"><span>Efectivo esperado ahora</span><span>${money(caja.efectivoEsperado)}</span></div>
+      </div>
+      <div style="font-size:11.5px;color:var(--text-dim);margin:10px 0;">
+        📲 Transferencia de hoy: ${money(caja.transferenciaVentas)} (no cuenta para el cajón físico)
+      </div>
+      <label class="field-label">Ajustar fondo inicial de hoy</label>
+      <div style="display:flex;gap:10px;">
+        <input id="ini-fondo" type="number" placeholder="Ej: 5000" style="margin-bottom:0;">
+        <button class="secondary" style="width:auto;padding:0 18px;" onclick="guardarFondoCaja()">Guardar</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Accesos rápidos</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="primary" onclick="navigate('vender')">Cargar una venta</button>
+        <button class="secondary" onclick="navigate('compras')">Registrar una compra</button>
+        <button class="secondary" onclick="navigate('resumen')">Ver rentabilidad</button>
+      </div>
+    </div>
+  `;
+}
+
+async function guardarFondoCaja() {
+  const monto = Number(document.getElementById('ini-fondo').value);
+  if (!monto && monto !== 0) { showToast('Ingresá un monto'); return; }
+  await jsonpRequest('setFondoCaja', {data: {Fecha: todayStr(), MontoInicial: monto}});
+  showToast('Fondo de caja actualizado ✓');
+  renderInicio();
+}
+
+/* ============ VENDER ============ */
+let ventaTab = 'PRODUCTO';
+async function renderVender() {
+  await loadProductos();
+  drawVender();
+}
+
+function drawVender() {
+  const main = document.getElementById('main');
+  const totalCarrito = carrito.reduce((s,i) => s + i.Cantidad * i.PrecioUnitario, 0);
+  const listaFiltrada = productos.filter(p => (p.Tipo || 'PRODUCTO') === ventaTab);
+
+  let productosHtml = listaFiltrada.map(p => `
+    <div class="product-row">
+      <div class="info">
+        <div class="pname">${p.Nombre}</div>
+        <div class="pmeta">${money(p.Precio)}${p.Tipo === 'SERVICIO' ? '' : ` · stock ${p.Stock}`}</div>
+      </div>
+      <button class="secondary" style="width:auto;padding:8px 14px;" onclick="agregarAlCarrito('${p.Codigo}')">+ Agregar</button>
+    </div>
+  `).join('') || `<div class="empty-state"><div class="icon">${ventaTab === 'SERVICIO' ? '🖨️' : '📦'}</div>Todavía no cargaste ${ventaTab === 'SERVICIO' ? 'servicios' : 'productos'} en Stock</div>`;
+
+  let carritoHtml = carrito.map((item, idx) => `
+    <div class="cart-item">
+      <div class="ci-name">${item.Cantidad} × ${item.Nombre}${item.Tipo === 'SERVICIO' ? ' <span style="color:var(--text-dim);">(servicio)</span>' : ''}</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="ci-total">${money(item.Cantidad * item.PrecioUnitario)}</div>
+        <button class="danger" onclick="quitarDelCarrito(${idx})">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  main.innerHTML = `
+    ${carrito.length > 0 ? `
+    <div class="card">
+      <h3>Venta actual</h3>
+      ${carritoHtml}
+      <div style="display:flex;justify-content:space-between;padding-top:12px;font-weight:700;font-family:'JetBrains Mono';font-size:16px;">
+        <span>Total</span><span style="color:var(--amber);">${money(totalCarrito)}</span>
+      </div>
+      <div class="pago-toggle" style="margin-top:14px;">
+        <div class="pago-btn ${metodoPagoVenta==='EFECTIVO'?'active-efectivo':''}" onclick="metodoPagoVenta='EFECTIVO';drawVender();">💵 Efectivo</div>
+        <div class="pago-btn ${metodoPagoVenta==='TRANSFERENCIA'?'active-transferencia':''}" onclick="metodoPagoVenta='TRANSFERENCIA';drawVender();">📲 Transferencia</div>
+      </div>
+      <div>
+        <button class="primary" onclick="confirmarVenta()">Confirmar venta</button>
+      </div>
+    </div>` : ''}
+    <div class="tabs">
+      <div class="tab-btn ${ventaTab==='PRODUCTO'?'active':''}" onclick="ventaTab='PRODUCTO';drawVender();">Productos</div>
+      <div class="tab-btn ${ventaTab==='SERVICIO'?'active':''}" onclick="ventaTab='SERVICIO';drawVender();">Servicios</div>
+    </div>
+    <div class="card">
+      <h3>${ventaTab === 'SERVICIO' ? 'Servicios' : 'Productos'}</h3>
+      <input type="text" placeholder="${ventaTab === 'SERVICIO' ? 'Buscar servicio...' : 'Buscar producto...'}" oninput="filtrarProductos(this.value)">
+      <div id="lista-productos">${productosHtml}</div>
+    </div>
+  `;
+}
+
+function filtrarProductos(texto) {
+  const filtrados = productos.filter(p => (p.Tipo || 'PRODUCTO') === ventaTab && p.Nombre.toLowerCase().includes(texto.toLowerCase()));
+  document.getElementById('lista-productos').innerHTML = filtrados.map(p => `
+    <div class="product-row">
+      <div class="info">
+        <div class="pname">${p.Nombre}</div>
+        <div class="pmeta">${money(p.Precio)}${p.Tipo === 'SERVICIO' ? '' : ` · stock ${p.Stock}`}</div>
+      </div>
+      <button class="secondary" style="width:auto;padding:8px 14px;" onclick="agregarAlCarrito('${p.Codigo}')">+ Agregar</button>
+    </div>
+  `).join('') || '<div class="empty-state">Sin resultados</div>';
+}
+
+function agregarAlCarrito(codigo) {
+  const p = productos.find(x => x.Codigo === codigo);
+  if (!p) return;
+  const existente = carrito.find(i => i.Codigo === codigo);
+  if (existente) existente.Cantidad += 1;
+  else carrito.push({Codigo: p.Codigo, Nombre: p.Nombre, Tipo: p.Tipo || 'PRODUCTO', Cantidad: 1, PrecioUnitario: Number(p.Precio)});
+  drawVender();
+}
+
+function quitarDelCarrito(idx) {
+  carrito.splice(idx, 1);
+  drawVender();
+}
+
+async function confirmarVenta() {
+  if (carrito.length === 0) return;
+  const btns = document.querySelectorAll('button.primary');
+  btns.forEach(b => b.disabled = true);
+  try {
+    await jsonpRequest('addVenta', {data: {items: carrito, metodoPago: metodoPagoVenta}});
+    showToast('Venta registrada ✓ (' + (metodoPagoVenta === 'TRANSFERENCIA' ? 'Transferencia' : 'Efectivo') + ')');
+    carrito = [];
+    metodoPagoVenta = 'EFECTIVO';
+    await loadProductos();
+    drawVender();
+  } catch(e) {
+    showToast('Error al registrar la venta');
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+/* ============ STOCK ============ */
+let nuevoItemTipo = 'PRODUCTO';
+async function renderStock() {
+  await loadProductos();
+  drawStock();
+}
+
+function drawStock() {
+  const main = document.getElementById('main');
+  const soloProductos = productos.filter(p => (p.Tipo || 'PRODUCTO') === 'PRODUCTO');
+  const soloServicios = productos.filter(p => p.Tipo === 'SERVICIO');
+  const bajos = soloProductos.filter(p => Number(p.Stock) <= Number(p.StockMinimo));
+
+  main.innerHTML = `
+    ${bajos.length > 0 ? `
+    <div class="card" style="border-color:var(--red);">
+      <h3 style="color:var(--red);">⚠ Stock bajo (${bajos.length})</h3>
+      ${bajos.map(p => `<div class="product-row"><div class="info"><div class="pname">${p.Nombre}</div></div><span class="stock-badge stock-low">${p.Stock} ${p.Unidad || ''}</span></div>`).join('')}
+    </div>` : ''}
+
+    <div class="card">
+      <h3>Nuevo producto o servicio</h3>
+      <div class="tabs">
+        <div class="tab-btn ${nuevoItemTipo==='PRODUCTO'?'active':''}" onclick="nuevoItemTipo='PRODUCTO';drawStock();">Producto</div>
+        <div class="tab-btn ${nuevoItemTipo==='SERVICIO'?'active':''}" onclick="nuevoItemTipo='SERVICIO';drawStock();">Servicio</div>
+      </div>
+      <label class="field-label">Nombre</label>
+      <input id="np-nombre" placeholder="${nuevoItemTipo === 'SERVICIO' ? 'Ej: Fotocopia simple' : 'Ej: Coca Cola 500ml'}">
+      <label class="field-label">Categoría</label>
+      <input id="np-categoria" placeholder="${nuevoItemTipo === 'SERVICIO' ? 'Ej: Fotocopiadora' : 'Ej: Bebidas'}">
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;"><label class="field-label">Costo${nuevoItemTipo === 'SERVICIO' ? ' (insumo, opcional)' : ''}</label><input id="np-costo" type="number" placeholder="0"></div>
+        <div style="flex:1;"><label class="field-label">Precio venta</label><input id="np-precio" type="number" placeholder="0"></div>
+      </div>
+      ${nuevoItemTipo === 'PRODUCTO' ? `
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;"><label class="field-label">Stock inicial</label><input id="np-stock" type="number" placeholder="0"></div>
+        <div style="flex:1;"><label class="field-label">Stock mínimo</label><input id="np-stockmin" type="number" placeholder="0"></div>
+      </div>` : `
+      <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:10px;">
+        Los servicios no llevan stock — se venden sin límite (ej: fotocopias, impresiones).
+      </div>`}
+      <button class="primary" onclick="crearProducto()">Guardar</button>
+    </div>
+
+    <div class="card">
+      <h3>Productos (${soloProductos.length})</h3>
+      ${soloProductos.map(p => `
+        <div class="product-row">
+          <div class="info">
+            <div class="pname">${p.Nombre}</div>
+            <div class="pmeta">Costo ${money(p.Costo)} · Venta ${money(p.Precio)}</div>
+          </div>
+          <span class="stock-badge ${Number(p.Stock) <= Number(p.StockMinimo) ? 'stock-low' : 'stock-ok'}">${p.Stock}</span>
+        </div>
+      `).join('') || '<div class="empty-state">Todavía no cargaste productos</div>'}
+    </div>
+
+    <div class="card">
+      <h3>Servicios (${soloServicios.length})</h3>
+      ${soloServicios.map(p => `
+        <div class="product-row">
+          <div class="info">
+            <div class="pname">${p.Nombre}</div>
+            <div class="pmeta">${p.Costo > 0 ? `Costo ${money(p.Costo)} · ` : ''}Venta ${money(p.Precio)}</div>
+          </div>
+        </div>
+      `).join('') || '<div class="empty-state">Todavía no cargaste servicios</div>'}
+    </div>
+  `;
+}
+
+async function crearProducto() {
+  const nombre = document.getElementById('np-nombre').value.trim();
+  if (!nombre) { showToast('Falta el nombre'); return; }
+  const codigo = 'P' + Date.now();
+  const esServicio = nuevoItemTipo === 'SERVICIO';
+  const data = {
+    Codigo: codigo,
+    Nombre: nombre,
+    Categoria: document.getElementById('np-categoria').value.trim() || 'General',
+    Tipo: nuevoItemTipo,
+    Costo: Number(document.getElementById('np-costo').value) || 0,
+    Precio: Number(document.getElementById('np-precio').value) || 0,
+    Stock: esServicio ? 0 : (Number(document.getElementById('np-stock').value) || 0),
+    StockMinimo: esServicio ? 0 : (Number(document.getElementById('np-stockmin').value) || 0),
+    Unidad: esServicio ? 'servicio' : 'unidad'
+  };
+  await jsonpRequest('addProducto', {data});
+  showToast('Producto guardado ✓');
+  await loadProductos();
+  drawStock();
+}
+
+/* ============ COMPRAS ============ */
+let compraActual = { proveedor: '', comprobante: '', fecha: todayStr(), items: [] };
+
+async function renderCompras() {
+  await loadProductos();
+  drawCompras();
+}
+
+function drawCompras() {
+  const main = document.getElementById('main');
+  const totalCompra = compraActual.items.reduce((s,i) => s + itemTotalCompra(i), 0);
+
+  const itemsHtml = compraActual.items.map((item, idx) => `
+    <div class="cart-item">
+      <div class="ci-name">${item.Cantidad} × ${item.Producto}${item.Descuento ? ` <span style="color:var(--text-dim);">(-${item.Descuento}%)</span>` : ''}</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="ci-total">${money(itemTotalCompra(item))}</div>
+        <button class="danger" onclick="quitarItemCompra(${idx})">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  main.innerHTML = `
+    <div class="card">
+      <h3>Datos del comprobante</h3>
+      <label class="field-label">Proveedor</label>
+      <input id="cp-proveedor" placeholder="Ej: Delvalle Group / Arcor" value="${compraActual.proveedor}" oninput="compraActual.proveedor=this.value">
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;"><label class="field-label">N° comprobante</label><input id="cp-nrocomp" placeholder="Ej: 0003-00017187" value="${compraActual.comprobante}" oninput="compraActual.comprobante=this.value"></div>
+        <div style="flex:1;"><label class="field-label">Fecha</label><input id="cp-fecha" type="date" value="${compraActual.fecha}" oninput="compraActual.fecha=this.value"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Agregar producto al comprobante</h3>
+      <label class="field-label">Producto</label>
+      <select id="cp-producto" onchange="onCambioProductoCompra()">
+        <option value="">— Producto nuevo (no está en Stock) —</option>
+        ${productos.filter(p => (p.Tipo || 'PRODUCTO') === 'PRODUCTO').map(p => `<option value="${p.Codigo}">${p.Nombre}</option>`).join('')}
+      </select>
+      <div id="cp-nombre-nuevo-wrap">
+        <label class="field-label">Nombre del producto nuevo</label>
+        <input id="cp-nombre-manual" placeholder="Ej: Bizcochitos sabor queso 160g">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;"><label class="field-label">Cantidad</label><input id="cp-cantidad" type="number" placeholder="0"></div>
+        <div style="flex:1;"><label class="field-label">Costo unitario</label><input id="cp-costo" type="number" placeholder="0"></div>
+        <div style="flex:1;"><label class="field-label">Desc. %</label><input id="cp-descuento" type="number" placeholder="0"></div>
+      </div>
+      <button class="secondary" onclick="agregarItemCompra()">+ Agregar al comprobante</button>
+    </div>
+
+    ${compraActual.items.length > 0 ? `
+    <div class="card">
+      <h3>Comprobante actual</h3>
+      ${itemsHtml}
+      <div style="display:flex;justify-content:space-between;padding-top:12px;font-weight:700;font-family:'JetBrains Mono';font-size:16px;">
+        <span>Total</span><span style="color:var(--amber);">${money(totalCompra)}</span>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="primary" onclick="confirmarCompra()">Registrar comprobante completo</button>
+      </div>
+    </div>` : ''}
+    <div style="font-size:11.5px;color:var(--text-dim);padding:0 4px;">
+      Cargá todos los productos de la factura o remito y después registrá el comprobante completo de una — el stock se suma solo por cada producto y el costo se actualiza al último precio pagado (neto del descuento).
+    </div>
+  `;
+}
+
+function itemTotalCompra(item) {
+  const bruto = item.Cantidad * item.CostoUnitario;
+  return bruto * (1 - (item.Descuento || 0) / 100);
+}
+
+function onCambioProductoCompra() {
+  const codigo = document.getElementById('cp-producto').value;
+  document.getElementById('cp-nombre-nuevo-wrap').style.display = codigo ? 'none' : 'block';
+}
+
+function agregarItemCompra() {
+  const codigo = document.getElementById('cp-producto').value;
+  const nombreManual = document.getElementById('cp-nombre-manual').value.trim();
+  const cantidad = Number(document.getElementById('cp-cantidad').value);
+  const costo = Number(document.getElementById('cp-costo').value);
+  const descuento = Number(document.getElementById('cp-descuento').value) || 0;
+
+  if (!cantidad || !costo) { showToast('Completá cantidad y costo'); return; }
+
+  let nombreProducto = nombreManual;
+  if (codigo) {
+    const p = productos.find(x => x.Codigo === codigo);
+    nombreProducto = p ? p.Nombre : nombreManual;
+  }
+  if (!nombreProducto) { showToast('Falta el nombre del producto'); return; }
+
+  compraActual.items.push({ Codigo: codigo || null, Producto: nombreProducto, Cantidad: cantidad, CostoUnitario: costo, Descuento: descuento });
+  drawCompras();
+}
+
+function quitarItemCompra(idx) {
+  compraActual.items.splice(idx, 1);
+  drawCompras();
+}
+
+async function confirmarCompra() {
+  if (compraActual.items.length === 0) return;
+  const btns = document.querySelectorAll('button.primary');
+  btns.forEach(b => b.disabled = true);
+  try {
+    await jsonpRequest('addCompra', {data: {
+      Fecha: compraActual.fecha,
+      Proveedor: compraActual.proveedor || 'Sin especificar',
+      NroComprobante: compraActual.comprobante || '',
+      items: compraActual.items
+    }});
+    showToast('Comprobante registrado ✓');
+    compraActual = { proveedor: '', comprobante: '', fecha: todayStr(), items: [] };
+    await loadProductos();
+    drawCompras();
+  } catch(e) {
+    showToast('Error al registrar la compra');
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+/* ============ GASTOS ============ */
+let gastosTab = 'variables';
+let metodoPagoGasto = 'EFECTIVO';
+let metodoPagoRetiro = 'EFECTIVO';
+async function renderGastos() {
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="tabs">
+      <div class="tab-btn ${gastosTab==='variables'?'active':''}" onclick="gastosTab='variables';renderGastos();">Gastos del día</div>
+      <div class="tab-btn ${gastosTab==='fijos'?'active':''}" onclick="gastosTab='fijos';renderGastos();">Gastos fijos</div>
+      <div class="tab-btn ${gastosTab==='retiros'?'active':''}" onclick="gastosTab='retiros';renderGastos();">Retiros</div>
+    </div>
+    <div id="gastos-content"></div>
+  `;
+  if (gastosTab === 'variables') {
+    document.getElementById('gastos-content').innerHTML = `
+      <div class="card">
+        <h3>Nuevo gasto</h3>
+        <label class="field-label">Concepto</label>
+        <input id="eg-concepto" placeholder="Ej: Bolsas, flete, cambio">
+        <label class="field-label">Categoría</label>
+        <input id="eg-categoria" placeholder="Ej: Insumos">
+        <label class="field-label">Monto</label>
+        <input id="eg-monto" type="number" placeholder="0">
+        <label class="field-label">Pagado con</label>
+        <div class="pago-toggle">
+          <div class="pago-btn ${metodoPagoGasto==='EFECTIVO'?'active-efectivo':''}" onclick="metodoPagoGasto='EFECTIVO';renderGastos();">💵 Efectivo</div>
+          <div class="pago-btn ${metodoPagoGasto==='TRANSFERENCIA'?'active-transferencia':''}" onclick="metodoPagoGasto='TRANSFERENCIA';renderGastos();">📲 Transferencia</div>
+        </div>
+        <button class="primary" onclick="registrarEgreso()">Registrar gasto</button>
+      </div>
+    `;
+  } else if (gastosTab === 'retiros') {
+    document.getElementById('gastos-content').innerHTML = `
+      <div class="card">
+        <h3>Retiro del dueño</h3>
+        <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:12px;">
+          Plata que sacás vos del kiosco para uso personal. No es un gasto del negocio, así que no afecta la rentabilidad — pero sí se descuenta de la caja física.
+        </div>
+        <label class="field-label">Concepto (opcional)</label>
+        <input id="rt-concepto" placeholder="Ej: Retiro semanal">
+        <label class="field-label">Monto</label>
+        <input id="rt-monto" type="number" placeholder="0">
+        <label class="field-label">Sacado de</label>
+        <div class="pago-toggle">
+          <div class="pago-btn ${metodoPagoRetiro==='EFECTIVO'?'active-efectivo':''}" onclick="metodoPagoRetiro='EFECTIVO';renderGastos();">💵 Efectivo</div>
+          <div class="pago-btn ${metodoPagoRetiro==='TRANSFERENCIA'?'active-transferencia':''}" onclick="metodoPagoRetiro='TRANSFERENCIA';renderGastos();">📲 Transferencia</div>
+        </div>
+        <button class="primary" onclick="registrarRetiro()">Registrar retiro</button>
+      </div>
+    `;
+  } else {
+    const fijos = await jsonpRequest('getGastosFijos');
+    const totalFijos = fijos.reduce((s,g) => s + Number(g.MontoMensual), 0);
+    document.getElementById('gastos-content').innerHTML = `
+      <div class="card">
+        <h3>Gastos fijos mensuales</h3>
+        <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:12px;">
+          Alquiler, luz, internet, sueldos, etc. Esto es lo que usamos para calcular el punto de equilibrio.
+        </div>
+        ${fijos.map(g => `<div class="product-row"><div class="info"><div class="pname">${g.Concepto}</div></div><div class="pmeta">${money(g.MontoMensual)}/mes</div></div>`).join('') || '<div class="empty-state">Sin gastos fijos cargados</div>'}
+        <div style="display:flex;justify-content:space-between;padding-top:12px;font-weight:700;">
+          <span>Total mensual</span><span>${money(totalFijos)}</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Agregar / actualizar gasto fijo</h3>
+        <label class="field-label">Concepto</label>
+        <input id="gf-concepto" placeholder="Ej: Alquiler">
+        <label class="field-label">Monto mensual</label>
+        <input id="gf-monto" type="number" placeholder="0">
+        <button class="primary" onclick="guardarGastoFijo()">Guardar</button>
+      </div>
+    `;
+  }
+}
+
+async function registrarEgreso() {
+  const concepto = document.getElementById('eg-concepto').value.trim();
+  const monto = Number(document.getElementById('eg-monto').value);
+  if (!concepto || !monto) { showToast('Completá concepto y monto'); return; }
+  const categoria = document.getElementById('eg-categoria').value.trim() || 'General';
+  await jsonpRequest('addEgreso', {data: {Fecha: todayStr(), Concepto: concepto, Categoria: categoria, Monto: monto, MetodoPago: metodoPagoGasto}});
+  showToast('Gasto registrado ✓');
+  metodoPagoGasto = 'EFECTIVO';
+  renderGastos();
+}
+
+async function guardarGastoFijo() {
+  const concepto = document.getElementById('gf-concepto').value.trim();
+  const monto = Number(document.getElementById('gf-monto').value);
+  if (!concepto || !monto) { showToast('Completá concepto y monto'); return; }
+  await jsonpRequest('setGastoFijo', {data: {Concepto: concepto, MontoMensual: monto}});
+  showToast('Gasto fijo guardado ✓');
+  renderGastos();
+}
+
+async function registrarRetiro() {
+  const concepto = document.getElementById('rt-concepto').value.trim() || 'Retiro';
+  const monto = Number(document.getElementById('rt-monto').value);
+  if (!monto) { showToast('Ingresá un monto'); return; }
+  await jsonpRequest('addRetiro', {data: {Fecha: todayStr(), Concepto: concepto, Monto: monto, MetodoPago: metodoPagoRetiro}});
+  showToast('Retiro registrado ✓');
+  metodoPagoRetiro = 'EFECTIVO';
+  renderGastos();
+}
+
+/* ============ RESUMEN ============ */
+let periodoResumen = 'mes';
+async function renderResumen() {
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="tabs">
+      <div class="tab-btn ${periodoResumen==='hoy'?'active':''}" onclick="periodoResumen='hoy';renderResumen();">Hoy</div>
+      <div class="tab-btn ${periodoResumen==='semana'?'active':''}" onclick="periodoResumen='semana';renderResumen();">7 días</div>
+      <div class="tab-btn ${periodoResumen==='mes'?'active':''}" onclick="periodoResumen='mes';renderResumen();">Este mes</div>
+    </div>
+    <div id="resumen-content"><div class="loading-spinner"><div></div><div></div><div></div></div></div>
+  `;
+
+  const hoy = new Date();
+  let desde;
+  if (periodoResumen === 'hoy') desde = new Date(hoy);
+  else if (periodoResumen === 'semana') { desde = new Date(hoy); desde.setDate(desde.getDate() - 7); }
+  else { desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1); }
+
+  const fmt = (d) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  const r = await jsonpRequest('getResumen', {desde: fmt(desde), hasta: fmt(hoy)});
+
+  const rentabilidadClass = r.rentabilidadNeta >= 0 ? 'pos' : 'neg';
+  const margenPct = (r.margenContribucionPct * 100).toFixed(1);
+
+  document.getElementById('resumen-content').innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Ventas</div><div class="value amber">${money(r.totalVentas)}</div></div>
+      <div class="kpi"><div class="label">Rentabilidad</div><div class="value ${rentabilidadClass}">${money(r.rentabilidadNeta)}</div></div>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Ventas de productos</div><div class="value">${money(r.totalVentasProductos)}</div></div>
+      <div class="kpi"><div class="label">Ventas de servicios</div><div class="value">${money(r.totalVentasServicios)}</div></div>
+    </div>
+    <div class="card">
+      <h3>Caja del período</h3>
+      <div class="receipt">
+        <div class="r-row"><span>💵 Ventas en efectivo</span><span>${money(r.totalEfectivo)}</span></div>
+        <div class="r-row"><span>📲 Ventas por transferencia</span><span>${money(r.totalTransferencia)}</span></div>
+        <div class="r-row"><span>Gastos pagados en efectivo</span><span>-${money(r.totalEgresosEfectivo)}</span></div>
+        <div class="r-row"><span>Retiros del dueño (efectivo)</span><span>-${money(r.totalRetirosEfectivo)}</span></div>
+        <div class="r-total"><span>Efectivo neto en caja</span><span>${money(r.cajaEfectivoNeta)}</span></div>
+      </div>
+      <div style="font-size:11.5px;color:var(--text-dim);margin-top:10px;">
+        Esto es lo que debería quedarte en efectivo (sin contar lo que ya tenías antes del período): ventas en efectivo menos gastos y retiros pagados con esa plata. Los retiros del dueño no afectan la rentabilidad del negocio, solo la caja física.
+      </div>
+    </div>
+    <div class="card">
+      <h3>Detalle del período</h3>
+      <div class="receipt">
+        <div class="r-row"><span>Ventas totales</span><span>${money(r.totalVentas)}</span></div>
+        <div class="r-row"><span>Costo de mercadería vendida</span><span>-${money(r.totalCostoVendido)}</span></div>
+        <div class="r-row"><span>Margen bruto (${margenPct}%)</span><span>${money(r.margenBruto)}</span></div>
+        <div class="r-row"><span>Gastos del período</span><span>-${money(r.totalEgresos)}</span></div>
+        <div class="r-row"><span>Gastos fijos (mensual)</span><span>-${money(r.totalGastosFijos)}</span></div>
+        <div class="r-total"><span>Resultado</span><span>${money(r.rentabilidadNeta)}</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Punto de equilibrio</h3>
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">
+        Con tu margen actual del ${margenPct}%, necesitás vender esto por mes para cubrir tus gastos fijos:
+      </div>
+      <div style="font-family:'JetBrains Mono';font-size:26px;font-weight:700;color:var(--amber);">${money(r.puntoEquilibrioMensual)}</div>
+    </div>
+    <div class="card">
+      <h3>Productos más vendidos</h3>
+      ${r.topProductos.slice(0,8).map((p,i) => `
+        <div class="top-list-item"><span><span class="rank">${i+1}</span>${p.producto} (${p.unidades})</span><span>${money(p.total)}</span></div>
+      `).join('') || '<div class="empty-state">Sin ventas de productos en este período</div>'}
+    </div>
+    <div class="card">
+      <h3>Servicios más vendidos</h3>
+      ${r.topServicios.slice(0,8).map((p,i) => `
+        <div class="top-list-item"><span><span class="rank">${i+1}</span>${p.producto} (${p.unidades})</span><span>${money(p.total)}</span></div>
+      `).join('') || '<div class="empty-state">Sin ventas de servicios en este período</div>'}
+    </div>
+  `;
+}
+
+/* ============ INIT ============ */
+navigate('inicio');
+</script>
+</body>
+</html>
